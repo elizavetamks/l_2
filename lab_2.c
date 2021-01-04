@@ -65,9 +65,9 @@ int what_is_num(char symbol, alphabet* el)
 
 void perebor(alphabet*start)
 {
-	int stop = pow(10, n);
+	int stop = 0;
 	int prov = 1;
-	int mas_prov[10] = { 11,13,2,3,17,5,19,7,23,29 };
+
 
 	for (int i = 0; i < n; i++)
 		p[i] = 0;
@@ -75,23 +75,33 @@ void perebor(alphabet*start)
 	while (1) {
 		int not_print = 0;
 		int num = 0;
-		for (int i = 0; i < n; i++)
+
+		p[n - 1]++;
+		if (p[n - 1] == 10)
 		{
-			num = num + p[i] * pow(10, n - i - 1);
+			int w = 1;
+			while (1)
+			{
+				if (n - w == 0)
+				{
+					stop = 1;
+					break;
+				}
+				p[n - w] = 0;
+				p[n - w-1]++;
+				if (p[n - w - 1] != 10) break;
+				else w++;
+			}
 		}
-		num++;
 
-		if (num == stop) break;
-		for (int i = n - 1; i >= 0; i--)
+		if (stop) break;
+
+		for (int i = 0; i < n-1; i++)
 		{
-
-			p[i] = num % 10;
-			num = num / 10;
-			if (prov % mas_prov[p[i]] != 0)
-				prov = prov * mas_prov[p[i]];
-			else
-				not_print = 1;
-
+			for (int j = i + 1; j < n; j++)
+			{
+				if (p[i] == p[j]) not_print = 1;
+			}
 		}
 
 		if (not_print == 0)
@@ -125,7 +135,7 @@ int count(alphabet* start)
 	q++;
 	char b[10];
 	int j = 0;
-	for (j; j < 10 && mas[q] != '\n' && mas[q] != 0; j++, q++)
+	for (j; j < 10 && mas[q] != '\n' && mas[q] != 0 ; j++, q++)
 	{
 		if (j == 0 && what_is_num(mas[q], start->next) == 0) return 0;
 		b[j] = what_is_num(mas[q], start->next) + 48;
@@ -147,7 +157,7 @@ int main()
 	struct alphabet start;
 	start.next = NULL;
 	scan_mas();
-	
+
 	for (int i = 0; i < k_mas; i++)
 	{
 		if (isspace(mas[i]))
@@ -168,9 +178,9 @@ int main()
 			}
 		}
 	}
-	
-	printf("%s\n", mas);
 
+	printf("%s\n", mas);
+	
 	perebor(&start);
 
 	if (ans == 1) {
