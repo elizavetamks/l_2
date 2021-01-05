@@ -5,12 +5,14 @@
 #include <time.h>
 #include<math.h>
 #include <ctype.h>
-char mas[100];
-int k_mas;
+
+int k_mas=0;
 int n;
 int ans = 0;
 int p[10];
-
+int num_sum = 0;
+char a[10];
+char b[10];
 typedef struct alphabet
 {
 	char symb;
@@ -18,24 +20,53 @@ typedef struct alphabet
 	struct alphabet* next;
 }alphabet;
 
-int count(alphabet* start);
-
-inline void scan_mas()
+typedef struct quest
 {
+	char symb;
+	struct quest* next;
+	struct alphabet* alph;
+}quest;
+
+int count(alphabet* start, quest* mas_start);
+
+inline void scan_mas(quest* mas_start)
+{
+	int k_m;
+	char c;
 	FILE* f = fopen("text.txt", "r");
+	char mas[100];
 	fgets(mas, 100, f);
-	k_mas = strlen(mas);
-	if (mas[k_mas - 1] == '\n')
+	k_m = strlen(mas);
+	if (mas[k_m - 1] == '\n')
 	{
-		mas[k_mas - 1] = 0;
-		k_mas = k_mas - 1;
+		mas[k_m - 1] = 0;
+		k_m = k_m - 1;
 	}
+
+	for (int i = k_m - 1; i >= 0; i--)
+	{
+		
+		c = mas[i];
+		if (isspace(c) == 0) {
+			quest* new_el = (quest*)malloc(sizeof(quest));
+			new_el->symb = c;
+			new_el->next = mas_start->next;
+			mas_start->next = new_el;
+			new_el->alph = NULL;
+			k_mas++;
+		}
+		
+
+	}
+	
+	
+	
 }
 
-int is_in_alph(char symbol, alphabet* el)
+alphabet* is_in_alph(char symbol, alphabet* el)
 {
 	if (el == NULL) return 0;
-	else if (el->symb == symbol) return 1;
+	else if (el->symb == symbol) return el;
 	else if (el->next == NULL) return 0;
 	else return is_in_alph(symbol, el->next);
 }
@@ -55,14 +86,8 @@ void insert_num(int number, alphabet* el, int k)
 		insert_num(p[k + 1], el->next, k + 1);
 }
 
-int what_is_num(char symbol, alphabet* el)
-{
-	if (symbol == el->symb) return el->val;
-	else if (el->next != NULL) return what_is_num(symbol, el->next);
-	else return 0;
-}
 
-void perebor(alphabet* start)
+void perebor(alphabet* start, quest* mas_start)
 {
 	int stop = 0;
 	int prov = 1;
@@ -72,7 +97,7 @@ void perebor(alphabet* start)
 		p[i] = i;
 
 	while (1) {
-		//int not_print = 0;
+		
 		int num = 0;
 
 		p[n - 1]++;
@@ -91,11 +116,11 @@ void perebor(alphabet* start)
 				p[n - w - 1]++;
 				if (p[n - w - 1] != 10)
 				{
-					if ((n - w - 2 >= 0 && p[n - w - 1] == p[n - w - 2]) || (n - w - 3 >= 0 && p[n - w - 1] == p[n - w - 3]) || (n - w - 4 >= 0 && p[n - w - 1] == p[n - w - 4]) )
+					if ((n - w - 2 >= 0 && p[n - w - 1] == p[n - w - 2]) || (n - w - 3 >= 0 && p[n - w - 1] == p[n - w - 3]) || (n - w - 4 >= 0 && p[n - w - 1] == p[n - w - 4]))
 					{
 						goto Q;
 					}
-					
+
 
 					break;
 				}
@@ -104,7 +129,7 @@ void perebor(alphabet* start)
 		}
 
 		if (stop) break;
-	pro: 
+	pro:
 		for (int i = 0; i < n - 1; i++)
 		{
 			for (int j = i + 1; j < n; j++)
@@ -118,52 +143,62 @@ void perebor(alphabet* start)
 					}
 					else goto br;
 				}
-					
+
 			}
 		}
 
-		
-		insert_num(p[0], start->next, 0);
-		if (count(start) == 1) return;
-		
+
+		if (start->next != NULL) insert_num(p[0], start->next, 0);
+		if (count(start, mas_start) == 1) return;
+
 	br:
 
 		prov = 1;
 	}
 }
 
-int count(alphabet* start)
+
+int count(alphabet* start, quest * mas_start)
 {
-	//int res = 0;
+	
 	int num_sum = 0;
 	int q = 0;
-	int z;
+	
+	quest* tmp=mas_start->next;
 	while (1) {
 		int i = 0;
 		char a[10];
-		for (i; mas[q] != '+' && mas[q] != '='; i++, q++)
+
+
+		for (i;tmp!=NULL && tmp->symb != '+' && tmp->symb != '='; i++)
 		{
-			z = what_is_num(mas[q], start->next);
-			if (i == 0 && z == 0) return 0;
-			a[i] = z + 48;
+			
+			if (i == 0 && tmp->alph->val == 0) return 0;
+			a[i] = tmp->alph->val + 48;
+			tmp = tmp->next;
 		}
+		
 		a[i] = 0;
 		num_sum += atoi(a);
-		if (mas[q] == '=') break;
-		q++;
+	
+		if (tmp->symb == '=') break;
+		tmp = tmp->next;
 	}
 
-	q++;
+
+	tmp = tmp->next;
 	char b[10];
 	int j = 0;
-	for (j; mas[q] != 0; j++, q++)
+	for (j; tmp != NULL; j++)
 	{
-		z = what_is_num(mas[q], start->next);
-		if (j == 0 && z == 0) return 0;
-		b[j] = z + 48;
+		
+		if (j == 0 && tmp->alph->val == 0) return 0;
+		b[j] = tmp->alph->val + 48;
+
+		tmp = tmp->next;
 	}
 	b[j] = 0;
-	//res = atoi(b);
+	
 
 	if (num_sum == atoi(b))
 	{
@@ -173,52 +208,71 @@ int count(alphabet* start)
 	return 0;
 }
 
+void raspredelenie(quest * mas_el, alphabet* start)
+{
+	if (mas_el->symb != '+' && mas_el->symb != '=')
+	{
+		if (is_in_alph(mas_el->symb, start->next) == 0)
+		{
+			n++;
+			create_list(mas_el->symb, start);
+			mas_el->alph = start->next;
+		}
+		else
+			mas_el->alph = is_in_alph(mas_el->symb, start->next);
+	}
+	if (mas_el->next != NULL) raspredelenie(mas_el->next, start);
+}
+
+void print_mas(quest* mas_el)
+{
+	
+	printf("%c", mas_el->symb);
+	
+	if (mas_el->next != NULL)
+		print_mas(mas_el->next);
+	return;
+}
+
+void print_ans(quest* mas_el)
+{
+	
+	if (mas_el->symb == '+' || mas_el->symb == '=')
+		printf("%c", mas_el->symb);
+	else
+		printf("%d", mas_el->alph->val);
+	if (mas_el->next != NULL) print_ans(mas_el->next);
+	return;
+}
+
 int main()
 {
+	
 	unsigned int start_time = clock();
 	struct alphabet start;
 	start.next = NULL;
-	scan_mas();
-
-	for (int i = 0; i < k_mas; i++)
-	{
-		if (isspace(mas[i]))
-		{
-			printf("PLEASE. DON'T USE SPACES");
-			goto STOP;
-		}
-	}
-
-	for (int i = 0; i < k_mas; i++)
-	{
-		if (mas[i] > 64 && mas[i] < 91)
-		{
-			if (is_in_alph(mas[i], start.next) == 0)
-			{
-				n++;
-				create_list(mas[i], &start);
-			}
-		}
-	}
-
-	printf("%s\n", mas);
-
-	perebor(&start);
+	struct quest mas_start;
+	mas_start.next = NULL;
+	mas_start.alph = NULL;
+	scan_mas(&mas_start);
+	
+	
+	raspredelenie(mas_start.next, &start);
+	
+	print_mas(mas_start.next);
+	printf("\n");
+	perebor(&start, &mas_start);
 
 	if (ans == 1) {
-		for (int i = 0; i < k_mas; i++)
-		{
-			if (mas[i] == '+' || mas[i] == '=')
-				printf("%c", mas[i]);
-			else
-				printf("%d", what_is_num(mas[i], start.next));
-		}
+		
+		if (mas_start.next != NULL) print_ans(mas_start.next);
 	}
 	else
 		printf("THE SOLUTION IS NOT FOUND");
-STOP:
+
 	printf("\n%.3f", (clock() - start_time) / 1000.0f);
 	return 0;
 
 }
+
 
