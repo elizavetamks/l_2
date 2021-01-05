@@ -55,7 +55,6 @@ void insert_num(int number, alphabet* el, int k)
 		insert_num(p[k + 1], el->next, k + 1);
 }
 
-
 int what_is_num(char symbol, alphabet* el)
 {
 	if (symbol == el->symb) return el->val;
@@ -63,17 +62,17 @@ int what_is_num(char symbol, alphabet* el)
 	else return 0;
 }
 
-void perebor(alphabet*start)
+void perebor(alphabet* start)
 {
 	int stop = 0;
 	int prov = 1;
 
 
 	for (int i = 0; i < n; i++)
-		p[i] = 0;
+		p[i] = i;
 
 	while (1) {
-		int not_print = 0;
+		//int not_print = 0;
 		int num = 0;
 
 		p[n - 1]++;
@@ -88,46 +87,68 @@ void perebor(alphabet*start)
 					break;
 				}
 				p[n - w] = 0;
-				p[n - w-1]++;
-				if (p[n - w - 1] != 10) break;
+			Q:
+				p[n - w - 1]++;
+				if (p[n - w - 1] != 10)
+				{
+					if ((n - w - 2 >= 0 && p[n - w - 1] == p[n - w - 2]) || (n - w - 3 >= 0 && p[n - w - 1] == p[n - w - 3]) || (n - w - 4 >= 0 && p[n - w - 1] == p[n - w - 4]) )
+					{
+						goto Q;
+					}
+					
+
+					break;
+				}
 				else w++;
 			}
 		}
 
 		if (stop) break;
-
-		for (int i = 0; i < n-1; i++)
+	pro: 
+		for (int i = 0; i < n - 1; i++)
 		{
 			for (int j = i + 1; j < n; j++)
 			{
-				if (p[i] == p[j]) not_print = 1;
+				if (p[i] == p[j])
+				{
+					if (p[j] != 9)
+					{
+						p[j]++;
+						goto pro;
+					}
+					else goto br;
+				}
+					
 			}
 		}
 
-		if (not_print == 0)
-		{
-			insert_num(p[0], start->next, 0);
-			if (count(start) == 1) return;
-		}
+		
+		insert_num(p[0], start->next, 0);
+		if (count(start) == 1) return;
+		
+	br:
+
 		prov = 1;
 	}
 }
 
 int count(alphabet* start)
 {
-	int res = 0;
+	//int res = 0;
 	int num_sum = 0;
 	int q = 0;
+	int z;
 	while (1) {
 		int i = 0;
 		char a[10];
-		for (i; i < 10 && mas[q] != '+' && mas[q] != '='; i++, q++)
+		for (i; mas[q] != '+' && mas[q] != '='; i++, q++)
 		{
-			if (i == 0 && what_is_num(mas[q], start->next) == 0) return 0;
-			a[i] = what_is_num(mas[q], start->next) + 48;
+			z = what_is_num(mas[q], start->next);
+			if (i == 0 && z == 0) return 0;
+			a[i] = z + 48;
 		}
 		a[i] = 0;
-		num_sum = num_sum + atoi(a);
+		num_sum += atoi(a);
 		if (mas[q] == '=') break;
 		q++;
 	}
@@ -135,15 +156,16 @@ int count(alphabet* start)
 	q++;
 	char b[10];
 	int j = 0;
-	for (j; j < 10 && mas[q] != '\n' && mas[q] != 0 ; j++, q++)
+	for (j; mas[q] != 0; j++, q++)
 	{
-		if (j == 0 && what_is_num(mas[q], start->next) == 0) return 0;
-		b[j] = what_is_num(mas[q], start->next) + 48;
+		z = what_is_num(mas[q], start->next);
+		if (j == 0 && z == 0) return 0;
+		b[j] = z + 48;
 	}
 	b[j] = 0;
-	res = atoi(b);
+	//res = atoi(b);
 
-	if (num_sum == res)
+	if (num_sum == atoi(b))
 	{
 		ans = 1;
 		return 1;
@@ -171,7 +193,7 @@ int main()
 	{
 		if (mas[i] > 64 && mas[i] < 91)
 		{
-			if (is_in_alph(mas[i],start.next) == 0)
+			if (is_in_alph(mas[i], start.next) == 0)
 			{
 				n++;
 				create_list(mas[i], &start);
@@ -180,7 +202,7 @@ int main()
 	}
 
 	printf("%s\n", mas);
-	
+
 	perebor(&start);
 
 	if (ans == 1) {
@@ -199,3 +221,4 @@ STOP:
 	return 0;
 
 }
+
